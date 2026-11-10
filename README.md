@@ -1,33 +1,30 @@
-# Cost‑Aware Model Serving
+# Cost-aware model serving
 
-This project demonstrates a simple routing layer that selects among
-multiple large language model providers based on cost and latency
-considerations.  It exposes a single `/generate` HTTP endpoint and
-forwards requests to the cheapest provider that satisfies the user’s
-latency constraint.
+A FastAPI routing example that selects the cheapest configured adapter whose
+declared average latency meets the request. The bundled adapters return
+synthetic text and use illustrative costs and latency estimates.
 
-## Features
-
-- Pluggable providers with configurable cost per token and average
-  latency.
-- Basic caching of recent responses to avoid redundant calls.
-- Simple fallback mechanism in case a provider returns an error.
-- Easily extensible: add new providers by subclassing `BaseProvider`.
-
-## Usage
-
-Install dependencies and run the service:
+## Run the example
 
 ```bash
-pip install -r requirements.txt
-python router.py
+python -m pip install -r requirements.txt
+python -m uvicorn router:app --host 127.0.0.1 --port 8000
+curl -X POST http://127.0.0.1:8000/generate -H "Content-Type: application/json" -d '{"prompt":"hello","max_tokens":5,"desired_latency":0.5}'
 ```
 
-Send a POST request to `http://localhost:8000/generate` with JSON
-containing a prompt and optional max_tokens and desired_latency fields.
+The default registry selects `EchoProvider` and returns `hello`. It has
+the lowest declared cost and latency, so other adapters can be compared by
+passing a custom registry to `Router`. A request with an infeasible latency
+returns HTTP 400. An explicitly empty registry raises a clear error.
 
-## Extending
+The example truncates characters using the historical `max_tokens` parameter.
+A real provider adapter would implement its model's token limits. Latency
+values are selection metadata. Caching and provider fallback remain possible
+extensions.
 
-To add a new model provider, create a subclass of `BaseProvider` in
-`providers.py` implementing the `generate` method and specifying cost
-and latency attributes.  Then register it in `Router.__init__`.
+## Verify
+
+```bash
+python -m pip install pytest
+python -m pytest -q
+```

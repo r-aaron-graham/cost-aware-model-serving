@@ -22,3 +22,8 @@ def test_generate_returns_provider_name():
     result = router.generate("hello", 5, desired_latency=None)
     assert "provider" in result
     assert "output" in result
+
+
+def test_explicit_empty_registry_is_not_replaced_with_defaults():
+    with pytest.raises(ValueError, match="No providers configured"):
+        Router(providers=[]).select_provider()
