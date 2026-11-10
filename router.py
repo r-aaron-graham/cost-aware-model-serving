@@ -33,7 +33,7 @@ class Router:
 
     def __init__(self, providers: Optional[List[BaseProvider]] = None):
         # Register default providers if none specified
-        self.providers: List[BaseProvider] = providers or [EchoProvider(), CheapProvider(), FastProvider()]
+        self.providers: List[BaseProvider] = [EchoProvider(), CheapProvider(), FastProvider()] if providers is None else providers
 
     def select_provider(self, desired_latency: Optional[float] = None) -> BaseProvider:
         # Filter providers by latency if desired
@@ -42,6 +42,8 @@ class Router:
             candidates = [p for p in candidates if p.avg_latency <= desired_latency]
             if not candidates:
                 raise ValueError("No provider meets the desired latency requirement.")
+        if not candidates:
+            raise ValueError("No providers configured.")
         # Choose the candidate with the lowest cost
         return min(candidates, key=lambda p: p.cost_per_1k)
 
