@@ -28,3 +28,16 @@ extensions.
 python -m pip install pytest
 python -m pytest -q
 ```
+
+## Deployment verification
+
+Use Python 3.12 on Linux. CI and the container use the checked-in dependency constraints.
+
+```sh
+python -m pip install -c requirements.lock -r requirements-dev.txt
+python -m pytest -q
+docker build -t reviewer-smoke .
+docker run --rm -p 127.0.0.1:8000:8000 reviewer-smoke
+```
+
+The container serves the API docs at `http://127.0.0.1:8000/docs`. Use the local example above to exercise its main route. The router uses fixture providers and illustrative cost and latency settings.
